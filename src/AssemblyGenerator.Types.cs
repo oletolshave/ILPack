@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -107,9 +108,23 @@ namespace Lokad.ILPack
             // Add implemented interfaces (not for enums though - eg: IComparable etc...)
             if (!type.IsEnum)
             {
-                foreach (var itf in type.GetInterfaces())
+                var interfaceTypeHandleList = type.GetInterfaces()
+                    .Select(i => _metadata.GetTypeHandle(i))
+                    .ToList();
+
+                if (interfaceTypeHandleList.Count > 1)
                 {
-                    _metadata.Builder.AddInterfaceImplementation(typeHandle, _metadata.GetTypeHandle(itf));
+                    Func<EntityHandle, int> getIndex = eh =>
+                    {
+                        return MetadataTokens.GetRowNumber(eh);
+                    };
+
+                    interfaceTypeHandleList.Sort((i1, i2) => getIndex(i1).CompareTo(getIndex(i2)));
+                }
+
+                foreach (var itf in interfaceTypeHandleList)
+                {
+                    _metadata.Builder.AddInterfaceImplementation(typeHandle, itf);
                 }
             }
 
