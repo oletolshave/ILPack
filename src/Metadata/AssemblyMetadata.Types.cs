@@ -44,6 +44,11 @@ namespace Lokad.ILPack.Metadata
 
         private EntityHandle ResolveTypeReference(Type type)
         {
+            if (type.DeclaringType != null)
+            {
+                Math.Abs(0);
+            }
+
             if (type.IsArray)
             {
                 return ResolveArrayTypeSpec(type);
@@ -65,11 +70,30 @@ namespace Lokad.ILPack.Metadata
                 return typeRef;
             }
 
+            string typeNamespace, typeName;
+            if (type.DeclaringType != null)
+            { 
+                //Builder.AddNestedType
+
+                //typeNamespace = type.DeclaringType.FullName;
+                typeNamespace = type.Namespace;
+                //typeName = type.Name; //typeName = type.DeclaringType.Name + "/" + type.Name;
+                typeName = type.Name;
+            }
+            else
+            {
+                typeNamespace = type.Namespace;
+                typeName = type.Name;
+            }
+
+            //Builder.AddNestedType()
+
             var scope = GetReferencedAssemblyForType(type);
             var typeHandle = Builder.AddTypeReference(
                 scope,
-                GetOrAddString(type.Namespace),
-                GetOrAddString(type.Name));
+                //GetOrAddString(type.Namespace),
+                GetOrAddString(typeNamespace),
+                GetOrAddString(typeName));
 
             _typeRefHandles.Add(type, typeHandle);
 

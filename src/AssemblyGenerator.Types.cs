@@ -74,6 +74,11 @@ namespace Lokad.ILPack
 
         private void CreateType(Type type)
         {
+            if (type.Name.EndsWith("IQueryApi"))
+            {
+                Math.Abs(0);
+            }
+
             // Check reserved and not already emitted
             if (!_metadata.TryGetTypeDefinition(type, out var metadata))
             {
@@ -109,6 +114,7 @@ namespace Lokad.ILPack
             if (!type.IsEnum)
             {
                 var interfaceTypeHandleList = type.GetInterfaces()
+                    .Where(i => i.DeclaringType == type)    // Ignore interfaces inherited from base type.
                     .Select(i => _metadata.GetTypeHandle(i))
                     .ToList();
 
